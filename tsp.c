@@ -100,6 +100,32 @@ static double tsp_brute_force(point *V, int n, int *P) {
     }
     return max;
 }
+static int nearest(point *V, int n, int current, char *available) {
+	int nearest = 0;
+	int max = dist(V[current],V[0]);
+	for(int i = 1; i < n; i++) {
+		if(!available[i] || i==current)
+			continue;
+		int _dist = dist(V[current],V[i]);
+		if( _dist < max ) {
+			nearest = i;
+			max = _dist;
+		}
+	}
+	return nearest;
+}
+static double tsp_plus_proche(point *V, int n, int *P) {
+	char tmp[n];
+	P[0] = 0;
+	for(int i = 0; i < n;i++)
+		tmp[i] = 1;
+	for(int i = 0; i < n;i++) {
+		P[(i+1)%n] = nearest(V,n,i,tmp);
+		tmp[P[(i+1)%n]] = 0;
+		printf("P = %d\n",P[(i+1)%n]);
+	}
+	return value(V, n, P);		
+}
 
 // Taille initiale de la fenêtre
 int width = 640;
@@ -146,8 +172,8 @@ int main(int argc, char *argv[]) {
     TopChrono(0); // initialise tous les chronos
     TopChrono(1); // départ du chrono 1
 
-    double w = tsp_brute_force(V, n, P);
-
+    //double w = tsp_brute_force(V, n, P);
+    double w = tsp_plus_proche(V, n, P);
     char *s = TopChrono(1); // s=durée
 
     printf("value: %g\n", w);
