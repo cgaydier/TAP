@@ -294,6 +294,30 @@ static double tsp_prog_dyn(point *V, int n, int *Q) {
     return value(V, n, Q);
 }
 
+static double tsp_twist(point *V,int n, int *P) {
+    int min = value(V,n,P);
+    int minP[n];
+    for(int it = 0; it < n;it++)
+        minP[it] = P[it];
+    for(int i = 0; i < n; i++)
+        for(int j = n-1; j > i;j--) {
+            int tmp = P[i];
+            P[i] = P[j];
+            P[j] = tmp;
+            if(value(V,n,P) < min){
+                min = value(V,n,P);
+                for(int it = 0; it < n;it++)
+                    minP[it] = P[it];
+            }
+            tmp = P[i];
+            P[i] = P[j];
+            P[j] = tmp;
+        }
+    for(int it = 0; it < n;it++)
+        P[it] = minP[it];
+    return value(V,n,minP);
+}
+
 static void drawPath(point *V, int n, int *path, int len) {
     // Saute le dessin si le précédent a été fait il y a moins de 20ms
     static unsigned int last_tick = 0;
@@ -329,10 +353,12 @@ int main(int argc, char *argv[]) {
     bool need_redraw = true;
     bool wait_event = true;
 
-    int n = 12;
+    int n = 9;
     int X = 300, Y = 200;
     point *V = generatePoints(n, X, Y);
     int *P = malloc(n * sizeof (int));
+    double w,w2,w3;
+    char *s,*s2,*s3;
     int *P2 = malloc(n * sizeof (int));
     int *P3 = malloc(n * sizeof (int));
     for (int i = 0; i < n; i++) P[i] = i;
@@ -341,8 +367,8 @@ int main(int argc, char *argv[]) {
     TopChrono(0); // initialise tous les chronos
     TopChrono(1); // départ du chrono 1
 
-    double w = tsp_brute_force(V, n, P);
-    char *s = TopChrono(1); // s=durée
+    w = tsp_brute_force(V, n, P);
+    s = TopChrono(1); // s=durée
 
     printf("value: %g\n", w);
     printf("runing time: %s\n", s);
@@ -355,8 +381,8 @@ int main(int argc, char *argv[]) {
     TopChrono(1); // départ du chrono 1
 
 
-    double w2 = tsp_prog_dyn(V, n, P2);
-    char *s2 = TopChrono(1); // s=durée
+    w2 = tsp_prog_dyn(V, n, P2);
+    s2 = TopChrono(1); // s=durée
 
     printf("value: %g\n", w2);
     printf("runing time: %s\n", s2);
@@ -368,8 +394,9 @@ int main(int argc, char *argv[]) {
     TopChrono(1); // départ du chrono 1
 
 
-    double w3 = tsp_plus_proche(V, n, P3);
-    char *s3 = TopChrono(1); // s=durée
+    w3 = tsp_plus_proche(V, n, P3);
+    w3 = tsp_twist(V,n,P3);
+    s3 = TopChrono(1); // s=durée
 
     printf("value: %g\n", w3);
     printf("runing time: %s\n", s3);
