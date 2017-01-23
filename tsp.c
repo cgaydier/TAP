@@ -146,7 +146,7 @@ bool running = true;
 bool mouse_down = false;
 double scale = 1.0f;
 
-static void draw(point *V, int n, int *P,int *P2) {
+static void draw(point *V, int n, int *P, int *P2) {
     // Efface la fenêtre
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -220,19 +220,21 @@ static double tsp_prog_dyn(point *V, int n, int *Q) {
     for (int j = 0; j < n; j++) {
         D[j] = malloc(sizeof (cell) * (1 << n));
     }
-    for (int i = n - 1; i > 0; i--) {
+    for (int i = n - 1; i >= 0; i--) {
         D[i][ADD_SET(0, i)].d = dist(V[n - 1], V[i]);
-        D[i][ADD_SET(0, i)].v = n - 1;
+        D[i][ADD_SET(0, i)].v = n - 1;        
     }
 
     do {
         for (int C = 0; C < n - 1; C++) {
             if (IN_SET(S, C)) {
                 int SwithoutC = DEL_SET(S, C);
-                D[C][S].d = -1;
+                if(S != ADD_SET(0, C)) {
+                    D[C][S].d = -1.0f;
+                }
                 for (int j = 0; j < n - 1; j++) {
                     if (IN_SET(SwithoutC, j)) {
-                        int lengthWithC = D[j][SwithoutC].d + dist(V[C], V[j]);
+                        double lengthWithC = D[j][SwithoutC].d + dist(V[C], V[j]);
                         if (D[C][S].d < 0 || lengthWithC < D[C][S].d) {
                             D[C][S].d = lengthWithC;
                             D[C][S].v = j;
@@ -251,7 +253,7 @@ static double tsp_prog_dyn(point *V, int n, int *Q) {
 
     // tournée_min
     int Sfull = 0;
-    for (int i = 0; i < n-1; i++) {
+    for (int i = 0; i < n - 1; i++) {
         Sfull = ADD_SET(Sfull, i);
     }
     double min = D[0][Sfull].d + dist(V[0], V[n - 1]);
@@ -271,11 +273,11 @@ static double tsp_prog_dyn(point *V, int n, int *Q) {
         Sfull = DEL_SET(Sfull, tmp);
         Q[i] = tmp;
     }
-    for(int i = 0; i < n; i++)
+    for (int i = 0; i < n; i++)
         free(D[i]);
     free(D);
-               
-    return min;
+
+    return value(V, n, Q);
 }
 
 static void drawPath(point *V, int n, int *path, int len) {
@@ -309,7 +311,7 @@ static void drawPath(point *V, int n, int *path, int len) {
 int main(int argc, char *argv[]) {
 
     initSDLOpenGL();
-    srand(0xcbca);
+    srand(0xcaca);
     bool need_redraw = true;
     bool wait_event = true;
 
@@ -337,11 +339,14 @@ int main(int argc, char *argv[]) {
     TopChrono(1); // départ du chrono 1
 
 
-    w = tsp_prog_dyn(V, n, P2);
-    s = TopChrono(1); // s=durée
+    double w2 = tsp_prog_dyn(V, n, P2);
+    char *s2 = TopChrono(1); // s=durée
 
-    printf("value: %g\n", w);
-    printf("runing time: %s\n", s);
+    printf("value: %g\n", w2);
+    printf("runing time: %s\n", s2);
+    for(int i = 0; i < n; i++)
+        printf("%d ->",P2[i]);
+    printf("\n");
     // Affiche le résultat (q pour sortir)
     while (running) {
 
