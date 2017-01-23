@@ -8,7 +8,7 @@ int width, height;
 double scale;        // Zoom courrant
 bool mouse_down;     // Bouton de la souris enfoncé
 bool running;        // Dans la boucle principale
-
+extern int lenPath;
 // Objets SDL
 SDL_Window *window;
 SDL_GLContext glcontext;

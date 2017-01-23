@@ -109,17 +109,17 @@ static double tsp_brute_force(point *V, int n, int *P) {
     }
     return max;
 }
-/*
+
 static int nearest(point *V, int n, int current, char *available) {
-        int nearest = 0;
-        int max = dist(V[current],V[0]);
-        for(int i = 1; i < n; i++) {
+        int nearest = -1;
+        double min = 999999999999;
+        for(int i = 0; i < n; i++) {
                 if(!available[i] || i==current)
                         continue;
                 int _dist = dist(V[current],V[i]);
-                if( _dist < max ) {
+                if( _dist < min ) {
                         nearest = i;
-                        max = _dist;
+                        min = _dist;
                 }
         }
         return nearest;
@@ -129,14 +129,14 @@ static double tsp_plus_proche(point *V, int n, int *P) {
         P[0] = 0;
         for(int i = 0; i < n;i++)
                 tmp[i] = 1;
-        for(int i = 0; i < n;i++) {
-                P[(i+1)%n] = nearest(V,n,i,tmp);
-                tmp[P[(i+1)%n]] = 0;
-                printf("P = %d\n",P[(i+1)%n]);
+        tmp[0] = 0;
+        for(int i = 1; i < n;i++) {
+                P[i] = nearest(V,n,P[i-1],tmp);
+                tmp[P[i]] = 0;
         }
         return value(V, n, P);		
 }
- */
+ 
 
 // Taille initiale de la fenêtre
 int width = 640;
@@ -146,25 +146,39 @@ bool running = true;
 bool mouse_down = false;
 double scale = 1.0f;
 
-static void draw(point *V, int n, int *P, int *P2) {
+static void draw(point *V, int n, int *P, int *P2, int *P3) {
     // Efface la fenêtre
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT);
-
+    point offset;
+    point offset2;
+    offset.x = 640;
+    offset.y = 0;
+    offset2.x = 0;
+    offset2.y = 480;
     // Dessin…
     // Choisir la couleur blanche
     selectColor(WHITE[0], WHITE[1], WHITE[2]);
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < n && i < lenPath; i++) {
         drawLine(V[P[i]], V[P[(i + 1) % n]]);
     }
+    //glTranslatef(640.0f,0.0f,0.0f);
     selectColor(BLUE[0], BLUE[1], BLUE[2]);
-    for (int i = 0; i < n; i++) {
-        drawLine(V[P2[i]], V[P2[(i + 1) % n]]);
+    for (int i = 0; i < n && i < lenPath; i++) {
+        drawLineOff(V[P2[i]], V[P2[(i + 1) % n]],offset);
+    }
+    //glTranslatef(0.0f,480.0f,0.0f);
+    selectColor(RED[0], RED[1], RED[2]);
+    for (int i = 0; i < n && i < lenPath; i++) {
+        drawLineOff(V[P3[i]], V[P3[(i + 1) % n]],offset2);
     }
     // Rouge
     selectColor(1.0f, 0.0, 0.0f);
-    for (int i = 0; i < n; i++)
+    for (int i = 0; i < n ; i++) {
         drawPoint(V[i]);
+        drawPointOff(V[i],offset);
+        drawPointOff(V[i],offset2);
+    }
 
     handleEvent(false);
 
@@ -266,8 +280,8 @@ static double tsp_prog_dyn(point *V, int n, int *Q) {
         }
     }
     S = Sfull;
-    //Q[0] = n - 1;
-    for (int i = 0; i < n; i++) {
+    Q[0] = n - 1;
+    for (int i = 1; i < n; i++) {
         int tmp = clast;
         clast = D[clast][Sfull].v;
         Sfull = DEL_SET(Sfull, tmp);
@@ -311,17 +325,19 @@ static void drawPath(point *V, int n, int *path, int len) {
 int main(int argc, char *argv[]) {
 
     initSDLOpenGL();
-    srand(0xcaca);
+    srand(0xc0ca);
     bool need_redraw = true;
     bool wait_event = true;
 
-    int n = 10;
+    int n = 12;
     int X = 300, Y = 200;
     point *V = generatePoints(n, X, Y);
     int *P = malloc(n * sizeof (int));
     int *P2 = malloc(n * sizeof (int));
+    int *P3 = malloc(n * sizeof (int));
     for (int i = 0; i < n; i++) P[i] = i;
-
+    
+    printf("Bruteforce : White path\n");
     TopChrono(0); // initialise tous les chronos
     TopChrono(1); // départ du chrono 1
 
@@ -333,7 +349,7 @@ int main(int argc, char *argv[]) {
 
 
 
-    printf("Dynamic\n");
+    printf("Dynamic : Blue path\n");
     for (int i = 0; i < n; i++) P2[i] = i;
     TopChrono(0); // initialise tous les chronos
     TopChrono(1); // départ du chrono 1
@@ -344,14 +360,27 @@ int main(int argc, char *argv[]) {
 
     printf("value: %g\n", w2);
     printf("runing time: %s\n", s2);
-    for(int i = 0; i < n; i++)
-        printf("%d ->",P2[i]);
     printf("\n");
+    
+    printf("Nearest : Red path\n");
+    for (int i = 0; i < n; i++) P3[i] = i;
+    TopChrono(0); // initialise tous les chronos
+    TopChrono(1); // départ du chrono 1
+
+
+    double w3 = tsp_plus_proche(V, n, P3);
+    char *s3 = TopChrono(1); // s=durée
+
+    printf("value: %g\n", w3);
+    printf("runing time: %s\n", s3);
+    printf("\n");
+    
     // Affiche le résultat (q pour sortir)
     while (running) {
 
         if (need_redraw) {
-            draw(V, n, P, P2);
+            draw(V, n, P, P2, P3);
+//            drawPath(V,n,P3,lenPath%n);
         }
 
         need_redraw = handleEvent(wait_event);

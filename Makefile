@@ -6,4 +6,5 @@ all: tsp
 
 tsp: tsp.c utils.c
 
-clean: rm tsp
+clean: 
+	rm tsp

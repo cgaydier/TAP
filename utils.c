@@ -14,6 +14,12 @@ void cleaning() {
 	SDL_Quit();
 }
 
+void drawLineOff(point p1, point p2,point offset) {
+	glBegin(GL_LINES);
+	glVertex2f(p1.x + offset.x, p1.y + offset.y);
+	glVertex2f(p2.x + offset.x, p2.y + offset.y);
+	glEnd();
+}
 void drawLine(point p1, point p2) {
 	glBegin(GL_LINES);
 	glVertex2f(p1.x, p1.y);
@@ -21,6 +27,12 @@ void drawLine(point p1, point p2) {
 	glEnd();
 }
 
+void drawPointOff(point p,point offset) {
+	glPointSize(5.0f);
+	glBegin(GL_POINTS);
+	glVertex2f(p.x+offset.x, p.y+offset.y);
+	glEnd();
+}
 void drawPoint(point p) {
 	glPointSize(5.0f);
 	glBegin(GL_POINTS);
@@ -33,7 +45,7 @@ void getCenterCoord(double *x, double *y) {
 	glGetIntegerv(GL_VIEWPORT, viewport);
 	pixelToCoord((viewport[0] + viewport[2]) / 2, (viewport[1] + viewport[3]) / 2, x, y);
 }
-
+int lenPath = 1;
 bool handleEvent(bool wait_event) {
 	SDL_Event e;
 	bool need_redraw = false;
@@ -45,8 +57,17 @@ bool handleEvent(bool wait_event) {
 	do {
 		switch (e.type) {
 		case SDL_KEYDOWN:
+                        if (e.key.keysym.sym == SDLK_UP) {
+                            lenPath++;
+                            need_redraw = true;
+                        }
+                        if (e.key.keysym.sym == SDLK_DOWN) {
+                            lenPath--;
+                            need_redraw = true;
+                        }
 			if (e.key.keysym.sym != SDLK_q)
 				break;
+                        
 		case SDL_QUIT:
 			running = false;
 			break;

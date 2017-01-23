@@ -25,8 +25,9 @@ void zoomPixelOut(int x, int y);
 typedef struct {
 	double x, y;
 } point;
-
 // Primitives de dessin
 void drawLine(point p1, point p2);
 void drawPoint(point p);
+void drawLineOff(point p1, point p2,point off);
+void drawPointOff(point p,point off);
 void selectColor(double red, double green, double blue);
