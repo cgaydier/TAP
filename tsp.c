@@ -15,6 +15,11 @@
 #define ADD_SET(S,i) (S | (1 << (i)))   // ajoute i à S
 #define DEL_SET(S,i) (S & ~(1 << (i)))  // supprimer i de S
 
+const float WHITE[] = {1.0f, 1.0f, 1.0f};
+const float RED[] = {1.0f, 0.0f, 0.0f};
+const float GREEN[] = {0.0f, 1.0f, 0.0f};
+const float BLUE[] = {0.0f, 0.0f, 1.0f};
+
 // Génère des points aléatoires dans le rectangle [0,max_X] × [0,max_Y]
 
 static point* generatePoints(int n, int max_X, int max_Y) {
@@ -57,6 +62,7 @@ static void print(int *P, int n) {
     }
     printf("\n");
 }
+
 struct paire {
     int val;
     int use;
@@ -70,12 +76,12 @@ static void MaxPermutation(int *P, int n, int k) {
     }
     for (int i = 0; i < k; i++)
         Tab[P[i]].use = 1;
-    for (int i = k; i < n;i++) {
-        int j=n-1;
+    for (int i = k; i < n; i++) {
+        int j = n - 1;
         while (Tab[j].use == 1 && j > 0) {
             j--;
         }
-        if(Tab[j].use == 0) {
+        if (Tab[j].use == 0) {
             P[i] = Tab[j].val;
             Tab[j].use = 1;
         }
@@ -83,10 +89,9 @@ static void MaxPermutation(int *P, int n, int k) {
 
 }
 
-
 static double tsp_brute_force(point *V, int n, int *P) {
     int tmp[n];
-    P[0]=0;
+    P[0] = 0;
     memcpy(tmp, P, sizeof (int)*n);
     double max = value(V, n, P);
 
@@ -106,32 +111,32 @@ static double tsp_brute_force(point *V, int n, int *P) {
 }
 /*
 static int nearest(point *V, int n, int current, char *available) {
-	int nearest = 0;
-	int max = dist(V[current],V[0]);
-	for(int i = 1; i < n; i++) {
-		if(!available[i] || i==current)
-			continue;
-		int _dist = dist(V[current],V[i]);
-		if( _dist < max ) {
-			nearest = i;
-			max = _dist;
-		}
-	}
-	return nearest;
+        int nearest = 0;
+        int max = dist(V[current],V[0]);
+        for(int i = 1; i < n; i++) {
+                if(!available[i] || i==current)
+                        continue;
+                int _dist = dist(V[current],V[i]);
+                if( _dist < max ) {
+                        nearest = i;
+                        max = _dist;
+                }
+        }
+        return nearest;
 }
 static double tsp_plus_proche(point *V, int n, int *P) {
-	char tmp[n];
-	P[0] = 0;
-	for(int i = 0; i < n;i++)
-		tmp[i] = 1;
-	for(int i = 0; i < n;i++) {
-		P[(i+1)%n] = nearest(V,n,i,tmp);
-		tmp[P[(i+1)%n]] = 0;
-		printf("P = %d\n",P[(i+1)%n]);
-	}
-	return value(V, n, P);		
+        char tmp[n];
+        P[0] = 0;
+        for(int i = 0; i < n;i++)
+                tmp[i] = 1;
+        for(int i = 0; i < n;i++) {
+                P[(i+1)%n] = nearest(V,n,i,tmp);
+                tmp[P[(i+1)%n]] = 0;
+                printf("P = %d\n",P[(i+1)%n]);
+        }
+        return value(V, n, P);		
 }
-*/
+ */
 
 // Taille initiale de la fenêtre
 int width = 640;
@@ -141,18 +146,23 @@ bool running = true;
 bool mouse_down = false;
 double scale = 1.0f;
 
-static void draw(point *V, int n, int *P) {
+static void draw(point *V, int n, int *P,int *P2) {
     // Efface la fenêtre
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT);
 
     // Dessin…
     // Choisir la couleur blanche
-    selectColor(1.0f, 1.0f, 1.0f);
-    for (int i = 0; i < n; i++)
+    selectColor(WHITE[0], WHITE[1], WHITE[2]);
+    for (int i = 0; i < n; i++) {
         drawLine(V[P[i]], V[P[(i + 1) % n]]);
+    }
+    selectColor(BLUE[0], BLUE[1], BLUE[2]);
+    for (int i = 0; i < n; i++) {
+        drawLine(V[P2[i]], V[P2[(i + 1) % n]]);
+    }
     // Rouge
-    selectColor(1.0f, 0.0f, 0.0f);
+    selectColor(1.0f, 0.0, 0.0f);
     for (int i = 0; i < n; i++)
         drawPoint(V[i]);
 
@@ -165,148 +175,141 @@ static void drawPath(point *V, int n, int *path, int len);
 
 /* ==== Programmation dynamique ====*/
 
-static int NextSet(unsigned S, int n){
-/*
-  Renvoie le plus petit entier immédiatement supérieure à S>0 et qui a
-  soit le même poids que S (c'est-à-dire le même nombre de 1 dans son
-  écriture binaire que S), soit le poids de S plus 1 s'il n'y en a pas
-  de même poids. La fonction renvoie 0 si S est le dernier entier sur
-  n bits, soit S=2^n-1. Pensez à inclure <string.h>.
-*/
-  int p1 = ffs(S);
-  int p2 = ffs(~(S >> p1)) + p1 - 1;
-  if (p2 - p1 + 1 == n) return 0; // cas S=2^n
-  if (p2 == n) return (1 << (p2 - p1 + 2)) - 1; // cas: poids(S)+1
-  int mask = (-1) << p2;
-  return (S & mask) | 1 << p2 | ((1 << (p2 - p1)) - 1); // cas: poids(S)
+static int NextSet(unsigned S, int n) {
+    /*
+      Renvoie le plus petit entier immédiatement supérieure à S>0 et qui a
+      soit le même poids que S (c'est-à-dire le même nombre de 1 dans son
+      écriture binaire que S), soit le poids de S plus 1 s'il n'y en a pas
+      de même poids. La fonction renvoie 0 si S est le dernier entier sur
+      n bits, soit S=2^n-1. Pensez à inclure <string.h>.
+     */
+    int p1 = ffs(S);
+    int p2 = ffs(~(S >> p1)) + p1 - 1;
+    if (p2 - p1 + 1 == n) return 0; // cas S=2^n
+    if (p2 == n) return (1 << (p2 - p1 + 2)) - 1; // cas: poids(S)+1
+    int mask = (-1) << p2;
+    return (S & mask) | 1 << p2 | ((1 << (p2 - p1)) - 1); // cas: poids(S)
 }
 
 /* une cellule de la table */
-typedef struct{
-  int v;
-  double d;
+typedef struct {
+    int v;
+    double d;
 } cell;
 
-static double tsp_prog_dyn(point *V, int n, int *Q){
-/*
-  Version programmation dynamique du TSP. Le résultat doit être écrit
-  dans la permutation Q. On renvoie la valeur de la tournée minimum ou
-  -1 s'il y a eut une erreur.
+static double tsp_prog_dyn(point *V, int n, int *Q) {
+    /*
+      Version programmation dynamique du TSP. Le résultat doit être écrit
+      dans la permutation Q. On renvoie la valeur de la tournée minimum ou
+      -1 s'il y a eut une erreur.
 
-  Attention ! Par rapport au cours, il est plus malin de commencer la
-  tournée à partir du sommet d'indice n-1 (au lieu de 0). Pourquoi ?
+      Attention ! Par rapport au cours, il est plus malin de commencer la
+      tournée à partir du sommet d'indice n-1 (au lieu de 0). Pourquoi ?
 
-  Donc D[t][S] = coût minimum d'un chemin allant de V[n-1] à V[t] qui
-  visite tous les sommets d'indice dans S.
+      Donc D[t][S] = coût minimum d'un chemin allant de V[n-1] à V[t] qui
+      visite tous les sommets d'indice dans S.
 
-  Il sera intéressant de dessiner à chaque fois que possible le chemin
-  courant avec drawPath()
-*/
+      Il sera intéressant de dessiner à chaque fois que possible le chemin
+      courant avec drawPath()
+     */
 
 
-  cell **D;
-  int S = 0;
-  int i=0;
-  D = malloc(sizeof(cell*) * n);
-  for(int j = 0; j < n; j++) {
-      D[j] = malloc(sizeof(cell) * (1 << n));
-  }
-  for(int i = n-1; i > 0; i--) {
-      D[i][ADD_SET(0,i)].d = dist(V[n-1],V[i]); 
-      D[i][ADD_SET(0,i)].v = n-1; 
-  }
-  
-    do{
-        for(int C =0; C < n-1; C++) {
-            if(IN_SET(S,C)) {
-                int SwithoutC = DEL_SET(S,C);
+    cell **D;
+    int S = 0;
+    D = malloc(sizeof (cell*) * n);
+    for (int j = 0; j < n; j++) {
+        D[j] = malloc(sizeof (cell) * (1 << n));
+    }
+    for (int i = n - 1; i > 0; i--) {
+        D[i][ADD_SET(0, i)].d = dist(V[n - 1], V[i]);
+        D[i][ADD_SET(0, i)].v = n - 1;
+    }
+
+    do {
+        for (int C = 0; C < n - 1; C++) {
+            if (IN_SET(S, C)) {
+                int SwithoutC = DEL_SET(S, C);
                 D[C][S].d = -1;
-                for(int j = 0; j < n-1; j++) {
-                    if(IN_SET(SwithoutC,j) ) {
-                        int lengthWithoutC = D[j][SwithoutC].d + dist(V[C],V[j]);
-                        if( D[C][S].d < 0 || lengthWithoutC < D[C][S].d) {
-                            D[C][S].d = lengthWithoutC;
+                for (int j = 0; j < n - 1; j++) {
+                    if (IN_SET(SwithoutC, j)) {
+                        int lengthWithC = D[j][SwithoutC].d + dist(V[C], V[j]);
+                        if (D[C][S].d < 0 || lengthWithC < D[C][S].d) {
+                            D[C][S].d = lengthWithC;
                             D[C][S].v = j;
-                            //drawPath(V, n, Q, i+1); // dessine le chemin courant
                         }
                     }
                 }
             }
         }
-      //...
-      
-      //   drawPath(V, n, Q, i+1); // dessine le chemin courant
 
-      //...
-	
-    }while ((S = NextSet(S, n-1)) && running);
+    } while ((S = NextSet(S, n - 1)) && running);
     // ne pas reconstruire la permutation si le calcul a été interrompu
-    if(!running){
-      //free ...
-      return -1;
+    if (!running) {
+        //free ...
+        return -1;
     }
-    
+
     // tournée_min
-  int Sfull = 0;
-  for(int i = 0; i < n-1; i++) {
-      Sfull = ADD_SET(Sfull,i);
-  }
-  double min = D[0][Sfull].d + dist(V[0],V[n-1]) ;
-  int clast = 0;
-  for(int i = 1; i < n-1;i++){
-      double minCalc = D[i][Sfull].d + dist(V[i],V[n-1]);
-      if( minCalc < min) {
-          clast = i;
-          min = minCalc;
-      }
-  }
-  S = Sfull;
-  Q[0] = n-1;
-  for(int i = 1; i < n-1; i++) {
-    int tmp = clast;
-    clast = D[clast][Sfull].v;
-    Sfull = DEL_SET(Sfull,tmp);
-    Q[i+1] = tmp;
-  }
-  for(int i = 0; i < n; i++)
-       printf("%d ->",Q[i]);
-     printf("Min ->%d\n",min);
-    //free ...
+    int Sfull = 0;
+    for (int i = 0; i < n-1; i++) {
+        Sfull = ADD_SET(Sfull, i);
+    }
+    double min = D[0][Sfull].d + dist(V[0], V[n - 1]);
+    int clast = 0;
+    for (int i = 1; i < n - 1; i++) {
+        double minCalc = D[i][Sfull].d + dist(V[i], V[n - 1]);
+        if (minCalc < min) {
+            clast = i;
+            min = minCalc;
+        }
+    }
+    S = Sfull;
+    //Q[0] = n - 1;
+    for (int i = 0; i < n; i++) {
+        int tmp = clast;
+        clast = D[clast][Sfull].v;
+        Sfull = DEL_SET(Sfull, tmp);
+        Q[i] = tmp;
+    }
+    for(int i = 0; i < n; i++)
+        free(D[i]);
+    free(D);
+               
     return min;
 }
 
-
 static void drawPath(point *V, int n, int *path, int len) {
-	// Saute le dessin si le précédent a été fait il y a moins de 20ms
-	static unsigned int last_tick = 0;
-	if (last_tick + 20 > SDL_GetTicks())
-		return;
-	last_tick = SDL_GetTicks();
+    // Saute le dessin si le précédent a été fait il y a moins de 20ms
+    static unsigned int last_tick = 0;
+    if (last_tick + 20 > SDL_GetTicks())
+        return;
+    last_tick = SDL_GetTicks();
 
-	// Gestion de la file d'event
-	handleEvent(false);
+    // Gestion de la file d'event
+    handleEvent(false);
 
-	// Efface la fenêtre
-	glClearColor(0,0,0,1);
-	glClear(GL_COLOR_BUFFER_BIT);
+    // Efface la fenêtre
+    glClearColor(0, 0, 0, 1);
+    glClear(GL_COLOR_BUFFER_BIT);
 
-	// Dessin …
-	// Choisir la couleur blanche
-	selectColor(0.0f, 1.0f, 0.0f);
-	for (int i = 0 ; i < len-1 ; i++)
-		drawLine(V[path[i]], V[path[i+1]]);
-	// Rouge
-	selectColor(1.0f, 0.0f, 0.0f);
-	for (int i = 0 ; i < n ; i++)
-		drawPoint(V[i]);
+    // Dessin …
+    // Choisir la couleur blanche
+    selectColor(0.0f, 1.0f, 0.0f);
+    for (int i = 0; i < len - 1; i++)
+        drawLine(V[path[i]], V[path[i + 1]]);
+    // Rouge
+    selectColor(1.0f, 0.0f, 0.0f);
+    for (int i = 0; i < n; i++)
+        drawPoint(V[i]);
 
-	// Affiche le dessin
-	SDL_GL_SwapWindow(window);
+    // Affiche le dessin
+    SDL_GL_SwapWindow(window);
 }
+
 int main(int argc, char *argv[]) {
 
     initSDLOpenGL();
-    srand(0xc0ca);
+    srand(0xcbca);
     bool need_redraw = true;
     bool wait_event = true;
 
@@ -314,23 +317,37 @@ int main(int argc, char *argv[]) {
     int X = 300, Y = 200;
     point *V = generatePoints(n, X, Y);
     int *P = malloc(n * sizeof (int));
+    int *P2 = malloc(n * sizeof (int));
     for (int i = 0; i < n; i++) P[i] = i;
 
     TopChrono(0); // initialise tous les chronos
     TopChrono(1); // départ du chrono 1
 
-    //double w = tsp_brute_force(V, n, P);
-    //double w = tsp_prog_dyn(V,n,P);
+    double w = tsp_brute_force(V, n, P);
     char *s = TopChrono(1); // s=durée
 
     printf("value: %g\n", w);
     printf("runing time: %s\n", s);
 
+
+
+    printf("Dynamic\n");
+    for (int i = 0; i < n; i++) P2[i] = i;
+    TopChrono(0); // initialise tous les chronos
+    TopChrono(1); // départ du chrono 1
+
+
+    w = tsp_prog_dyn(V, n, P2);
+    s = TopChrono(1); // s=durée
+
+    printf("value: %g\n", w);
+    printf("runing time: %s\n", s);
     // Affiche le résultat (q pour sortir)
     while (running) {
 
-        if (need_redraw)
-            draw(V, n, P);
+        if (need_redraw) {
+            draw(V, n, P, P2);
+        }
 
         need_redraw = handleEvent(wait_event);
     }
