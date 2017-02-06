@@ -121,12 +121,35 @@ static double tsp_flip(point *V, int n, int *P){
     while(first_flip(V,n,P)) {
         drawTour(V,n,P);
     }
-    return 0.0;
+    return value(V,n,P);
 }
 
+static int nearest(point *V, int n, int current, char *available) {
+        int nearest = -1;
+        double min = 999999999999;
+        for(int i = 0; i < n; i++) {
+                if(!available[i] || i==current)
+                        continue;
+                int _dist = dist(V[current],V[i]);
+                if( _dist < min ) {
+                        nearest = i;
+                        min = _dist;
+                }
+        }
+        return nearest;
+}
 /* =============== TSP GREEDY ================ */
 static double tsp_greedy(point *V, int n, int *P){
-  // ...
+          char tmp[n];
+        P[0] = 0;
+        for(int i = 0; i < n;i++)
+                tmp[i] = 1;
+        tmp[0] = 0;
+        for(int i = 1; i < n;i++) {
+                P[i] = nearest(V,n,P[i-1],tmp);
+                tmp[P[i]] = 0;
+        }
+        return value(V, n, P);
   return 0.0;
 }
 
@@ -166,6 +189,18 @@ int main(int argc, char *argv[]) {
     printf("runing time: %s\n",s);
     drawTour(V, -n, P); // force le dessin de la tournée
   }
+  for(int i = 0; i < n; i++) {
+      P[i] = i;
+  }
+  {
+    drawTour(V, n, NULL); // dessine les points
+    TopChrono(1); // départ du chrono 1
+    double w = tsp_greedy(V, n, P);
+    char *s = TopChrono(1); // s=durée
+    printf("value: %g\n",w);
+    printf("runing time: %s\n",s);
+    drawTour(V, -n, P); // force le dessin de la tournée
+  }
 
   sleep(1); // attend 1 seconde
 
@@ -180,6 +215,18 @@ int main(int argc, char *argv[]) {
     drawTour(V, n, NULL); // dessine les points
     TopChrono(1); // départ du chrono 1
     double w = tsp_flip(V, n, P);
+    char *s = TopChrono(1); // s=durée
+    printf("value: %g\n",w);
+    printf("runing time: %s\n",s);
+    drawTour(V, -n, P); // force le dessin de la tournée
+  }
+  for(int i = 0; i < n; i++) {
+      P[i] = i;
+  }
+  {
+    drawTour(V, n, NULL); // dessine les points
+    TopChrono(1); // départ du chrono 1
+    double w = tsp_greedy(V, n, P);
     char *s = TopChrono(1); // s=durée
     printf("value: %g\n",w);
     printf("runing time: %s\n",s);
