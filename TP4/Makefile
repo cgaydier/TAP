@@ -6,4 +6,4 @@ test_heap: test_heap.c heap.c
 	$(CC) $(CFLAGS) $^ -o $@
 
 clean:
-	rm test_heap heap
+	rm test_heap
