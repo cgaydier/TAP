@@ -1,6 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -g -Wno-unused-function -Wno-deprecated-declarations
 LDFLAGS = -lm
+.PHONY: clean
 
 ifeq ($(shell uname -s), Darwin)
     LF = Library/Frameworks
@@ -14,5 +15,7 @@ else
 endif
 
 a_star: a_star.c utils.c heap.c
-	$(CC) $(CFLAGS) $(IFLAGS) $(LDFLAGS) $^ -o $@
+	$(CC) $(CFLAGS) $(IFLAGS) $^ -o $@ $(LDFLAGS)
 
+clean:
+	rm a_star
