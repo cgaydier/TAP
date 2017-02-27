@@ -84,7 +84,6 @@ void A_star(grid G, heuristic h){
       }
       for(int i = -1; i <= 1; i++) {
           for(int j = -1; j <= 1; j++) {
-              drawGrid(G);
               int nbX = current->pos.x+i;
               int nbY = current->pos.y+j;
                   if(G.mark[nbX][nbY] == M_USED ) {} //Inside P
@@ -92,11 +91,12 @@ void A_star(grid G, heuristic h){
                       node *nb = malloc(sizeof(node));
                       nb->pos.x = nbX;
                       nb->pos.y = nbY;
-                      nb->cost = current->cost + G.value[nbX][nbY];
-                      nb->f = nb->cost + h(current->pos,nb->pos,G);
+                      nb->cost = current->cost + costs[G.value[nbX][nbY]];
+                      nb->f = nb->cost + h(nb->pos,G.end,G);
                       nb->parent = current;
                       G.mark[nbX][nbY] |= M_USED;
                       heap_add(Q,nb);
+                     // drawGrid(G);
                   }
           }
       }
@@ -121,7 +121,7 @@ int delay = 1; // unité = 10 ms
 
 int main(int argc, char *argv[]){
 
-  srandom(time(NULL));
+  srandom(0xc0ca);
   initSDLOpenGL();
   int w = 401; // doit être impaire
 
@@ -129,7 +129,7 @@ int main(int argc, char *argv[]){
   // le champs .mark est initialisé à 0
   grid G = initGrid(w,w);
 
-  A_star(G,h0);
+  A_star(G,hvo);
 
   while (running) {
     drawGrid(G);
