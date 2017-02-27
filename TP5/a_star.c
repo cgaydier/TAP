@@ -124,9 +124,10 @@ int delay = 1; // unité = 10 ms
 
 int main(int argc, char *argv[]){
   for(int i = 0; i < V_NUM ;i++) {
-        costs[i]=i+1;
+        costs[i]=2*(i+1);
   }
-  srandom(0xc0c0);
+  costs[V_SAND] = 1;
+  srandom(0xc0ca);
   initSDLOpenGL();
   int w = 401; // doit être impaire
 

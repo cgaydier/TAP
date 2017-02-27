@@ -112,8 +112,10 @@ grid initGridBlock(int x, int y) {
             for (int j = 0 ; j < G.Y ; j++)
                     G.value[i][j] = (i > 0 && i < G.X-1 && j > 0 && j < G.Y-1) ? V_ROOM : V_WALL;
     //return;
-    for (int i = 0 ; i < 200 ; i++)
+    for (int i = 0 ; i < 100 ; i++)
             G.value[rand() % G.X][rand() % G.Y] = V_SAND;
+    for (int i = 0 ; i < 100 ; i++)
+            G.value[rand() % G.X][rand() % G.Y] = V_WALL;
 
     for (int it = 0 ; it < G.X ; it++)
             for (int i = 2 ; i < G.X-2 ; i++)
@@ -124,6 +126,17 @@ grid initGridBlock(int x, int y) {
                                             n++;
                             if (n && rand() % ((4-n)*20+1) == 0)
                                     G.value[i][j] = V_SAND;
+                    }
+    
+    for (int it = 0 ; it < G.X ; it++)
+            for (int i = 2 ; i < G.X-2 ; i++)
+                    for (int j = 2 ; j < G.Y-2 ; j++) {
+                            int n = 0;
+                            for (int k = 0 ; k < 4; k++)
+                                    if (G.value[i+neighs[k][0]][j+neighs[k][1]] == V_WALL)
+                                            n++;
+                            if (n && rand() % ((4-n)*20+1) == 0)
+                                    G.value[i][j] = V_WALL;
                     }
     return G;
     
