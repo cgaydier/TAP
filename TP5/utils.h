@@ -34,4 +34,5 @@ void selectColor(double red, double green, double blue);
 void makeImage(grid);
 void drawGrid(grid);
 grid initGrid(int,int);
+grid initGridBlock(int,int);
 void freeGrid(grid);

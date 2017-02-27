@@ -24,6 +24,11 @@ void makeImage(grid G){
 					I[k+0] = 0;
 					I[k+1] = 255;
 					I[k+2] = 0;
+                                        if(G.value[i][j] == V_SAND){
+                                                I[k+0] = 255;
+                                                I[k+1] = 255;
+                                                I[k+2] = 0;
+                                        }
 					if(G.mark[i][j] & M_PATH){
 						I[k+0] = 0;
 						I[k+1] = 0;
@@ -31,9 +36,15 @@ void makeImage(grid G){
 					}
 				}
 				else{
+                                    if(G.value[i][j] == V_SAND){
+                                            I[k+0] = 200;
+                                            I[k+1] = 200;
+                                            I[k+2] = 0;
+                                    } else {
 					I[k+0] = 255;
 					I[k+1] = 255;
 					I[k+2] = 255;
+                                    }
 				}
 			}
 		}
@@ -79,6 +90,44 @@ void freeGrid(grid G){
   free(gridImage);
 }
 
+grid initGridBlock(int x, int y) {
+    int neighs[4][2];
+    neighs[0][0] = -1;
+    neighs[0][1] = 0;
+    neighs[1][0] = 0;
+    neighs[1][1] = 1;
+    neighs[2][0] = 1;
+    neighs[2][1] = 0;
+    neighs[3][0] = 0;
+    neighs[3][1] = -1;
+    grid G = allocGrid(x,y); // alloue la grille et son image
+
+    G.start.x = G.X-2;
+    G.start.y = G.Y-2;
+    G.end.x = 1;
+    G.end.y = 1;
+    G.value[G.X-2][1] = V_ROOM;
+  
+    for (int i = 0 ; i < G.X ; i++)
+            for (int j = 0 ; j < G.Y ; j++)
+                    G.value[i][j] = (i > 0 && i < G.X-1 && j > 0 && j < G.Y-1) ? V_ROOM : V_WALL;
+    //return;
+    for (int i = 0 ; i < 200 ; i++)
+            G.value[rand() % G.X][rand() % G.Y] = V_SAND;
+
+    for (int it = 0 ; it < G.X ; it++)
+            for (int i = 2 ; i < G.X-2 ; i++)
+                    for (int j = 2 ; j < G.Y-2 ; j++) {
+                            int n = 0;
+                            for (int k = 0 ; k < 4; k++)
+                                    if (G.value[i+neighs[k][0]][j+neighs[k][1]] == V_SAND)
+                                            n++;
+                            if (n && rand() % ((4-n)*20+1) == 0)
+                                    G.value[i][j] = V_SAND;
+                    }
+    return G;
+    
+}
 
 // Grille aléatoire de dimensions x,y
 // à partir d'un labyrinthe aléatoire

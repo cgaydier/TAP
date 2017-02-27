@@ -62,7 +62,7 @@ int compareNode(const void *x, const void *y) {
 
 
 void A_star(grid G, heuristic h){
-  heap Q = heap_create(401*401,compareNode);
+  heap Q = heap_create(G.X*G.Y,compareNode);
   node *start = malloc(sizeof(node));
   start->pos = G.start;
   start->cost = 0;
@@ -71,7 +71,10 @@ void A_star(grid G, heuristic h){
   
   while( !heap_empty(Q) ) {
       node *current = heap_pop(Q);
-      G.mark[current->pos.x][current->pos.y] |= M_USED;
+      if(G.mark[current->pos.x][current->pos.y] == M_USED) {
+          continue;
+      }
+      G.mark[current->pos.x][current->pos.y] = M_USED;
       
       if(current->pos.x == G.end.x && current->pos.y == G.end.y ) {
           //Construct path
@@ -87,16 +90,16 @@ void A_star(grid G, heuristic h){
               int nbX = current->pos.x+i;
               int nbY = current->pos.y+j;
                   if(G.mark[nbX][nbY] == M_USED ) {} //Inside P
-                  else if( G.value[nbX][nbY] == V_ROOM) {
+                  else if( G.value[nbX][nbY] == V_ROOM || G.value[nbX][nbY] == V_SAND) {
                       node *nb = malloc(sizeof(node));
                       nb->pos.x = nbX;
                       nb->pos.y = nbY;
                       nb->cost = current->cost + costs[G.value[nbX][nbY]];
                       nb->f = nb->cost + h(nb->pos,G.end,G);
                       nb->parent = current;
-                      G.mark[nbX][nbY] |= M_USED;
                       heap_add(Q,nb);
-                     // drawGrid(G);
+                      
+                      //drawGrid(G);
                   }
           }
       }
@@ -120,14 +123,16 @@ double scale = 1.0f;
 int delay = 1; // unité = 10 ms
 
 int main(int argc, char *argv[]){
-
-  srandom(0xc0ca);
+  for(int i = 0; i < V_NUM ;i++) {
+        costs[i]=i+1;
+  }
+  srandom(0xc0c0);
   initSDLOpenGL();
   int w = 401; // doit être impaire
 
   // labyrithne aléatoire w x w
   // le champs .mark est initialisé à 0
-  grid G = initGrid(w,w);
+  grid G = initGridBlock(w,w);
 
   A_star(G,hvo);
 
