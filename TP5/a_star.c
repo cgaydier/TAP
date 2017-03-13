@@ -39,7 +39,6 @@ typedef struct{
 
 int compareNode(const void *x, const void *y) {
     return ((node *)x)->f - ((node*)y)->f;
-
 }
 // Les arêtes, connectant les cases de la grille, sont valués
 // seulement certaines valeurs possibles. Le poids de l'arête u->v,
@@ -94,7 +93,6 @@ void A_star(grid G, heuristic h){
           continue;
       }
       G.mark[current->pos.x][current->pos.y] = M_USED;
-      totalNodes += 1;
       if(current->pos.x == G.end.x && current->pos.y == G.end.y ) {
           //Construct path
           printf("Chemin\n");
@@ -103,16 +101,14 @@ void A_star(grid G, heuristic h){
               totalCosts += current->cost;
               G.mark[current->pos.x][current->pos.y] |= M_PATH;
               current = current->parent;
+              totalNodes += 1;
           }
-          printf("Sommets visités : %d\n",totalNodes);
-          printf("Distance : %d\n",totalCosts);
+          printf("Longeur du chemin : %d\n",totalNodes);
+          printf("Cout du chemin : %d\n",totalCosts);
           return;
       }
       for(int i = -1; i <= 1; i++) {
           for(int j = -1; j <= 1; j++) {
-              if(abs(i) == abs(j) && (abs(i) == 1 || abs(i) == 0)) {
-                continue;
-              }
               int nbX = current->pos.x+i;
               int nbY = current->pos.y+j;
                   if(G.mark[nbX][nbY] == M_USED ) {} //Inside P
@@ -120,7 +116,11 @@ void A_star(grid G, heuristic h){
                       node *nb = malloc(sizeof(node));
                       nb->pos.x = nbX;
                       nb->pos.y = nbY;
-                      nb->cost = current->cost + weight[G.value[nbX][nbY]];
+                      if(abs(i) == abs(j) && (abs(i) == 1 || abs(i) == 0)) {
+                        nb->cost = current->cost + weight[G.value[nbX][nbY]];
+                      } else {
+                        nb->cost = current->cost + weight[G.value[nbX][nbY]];
+                      }
                       nb->f = nb->cost + h(nb->pos,G.end,&G);
                       nb->parent = current;
                       G.mark[nbX][nbY] = M_FRONT;
@@ -150,18 +150,18 @@ int main(int argc, char *argv[]){
 
   // tester les différentes grilles ...
   
-  //grid G = initGridFile("mygrid.txt"); // grille à partir d'un fichier
-  grid G = initGridPoints(320,240,V_FREE,1); // grille uniforme
+  grid G = initGridFile("mygrid.txt"); // grille à partir d'un fichier
+  //grid G = initGridPoints(320,240,V_FREE,1); // grille uniforme
   //grid G = initGridPoints(32,24,V_WALL,0.2); // grille de points aléatoires de type donné
   //grid G = initGridLaby(221,221); // labyrinthe aléatoire
 
   // Pour ajouter à G des "régions" de différent types:
 
-  addRandomBlob(G, V_WALL,   (G.X+G.Y)/20);
-  addRandomBlob(G, V_SAND,   (G.X+G.Y)/15);
-  addRandomBlob(G, V_WATER,  (G.X+G.Y)/15);
-  addRandomBlob(G, V_MUD,    (G.X+G.Y)/15);
-  addRandomBlob(G, V_GRASS,  (G.X+G.Y)/15);
+  //addRandomBlob(G, V_WALL,   (G.X+G.Y)/20);
+  //addRandomBlob(G, V_SAND,   (G.X+G.Y)/15);
+  //addRandomBlob(G, V_WATER,  (G.X+G.Y)/15);
+  //addRandomBlob(G, V_MUD,    (G.X+G.Y)/15);
+  //addRandomBlob(G, V_GRASS,  (G.X+G.Y)/15);
   //addRandomBlob(G, V_TUNNEL, (G.X+G.Y)/15);
   
   scale=round(fmin(width/G.X,height/G.Y)); // zoom courrant = nombre de pixels par unité
@@ -169,7 +169,7 @@ int main(int argc, char *argv[]){
   
   drawGrid(G); // dessin de la grille avant l'algo
 
-  A_star(G,hvo); // h0() ou hvo()
+  A_star(G,h0); // h0() ou hvo()
 
   while(running){
     drawGrid(G);
