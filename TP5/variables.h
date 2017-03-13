@@ -7,50 +7,73 @@
 #include <stdbool.h>
 
 typedef struct{
-  double x, y;
+  double x,y;
 } point;
-
-enum{
-  V_ROOM = 0, // Case vide
-  V_WALL,     // Mur
-  V_SAND,     // Sable
-  V_WATE,     // Eau
-  V_BURN,     // Feu
-  V_WIND,     // Vent ?
-
-  V_NUM, // Nombre de types d'obstacle
-
-  M_USED = 0x01,
-  M_PATH = 0x02,
-  M_SEEN = 0x04,
-  M_NEXT = 0x08
-};
 
 typedef struct{
   int x,y;
 } position;
 
 typedef struct{
-  int X,Y;     // dimensions: X et Y
-  int **value; // valuation: value[i][j], i=0..X-1, j=0..Y-1
-  int **mark;  // marquage: mark[i][j], i=0..X-1, j=0..Y-1
-  position start, end;
+  int X,Y;        // dimensions: X et Y
+  int **value;    // valuation des cases: value[i][j], 0<=i<X, 0<=j<Y
+  int **mark;     // marquage des cases: mark[i][j], 0<=i<X, 0<=j<Y
+  position start; // position de la source
+  position end;   // position de la destination
 } grid;
 
-double costs[V_NUM];
+// valeurs possibles des cases d'une grille pour .value et .mark
+// l'ordre doit être cohérent avec color[] et weight[]
+enum{
 
-// Taille de la fenêtre mise à jour celle-ci est redimensionnée
-int width, height;
+  // pour .value
+  V_FREE=0, // case vide
+  V_WALL,   // Mur
+  V_SAND,   // Sable
+  V_WATER,  // Eau
+  V_MUD,    // Boue
+  V_GRASS,  // Herbe
+  V_TUNNEL, // Tunnel
 
-double scale;                          // Zoom courrant
-bool mouse_left_down, mouse_right_down;// Boutons de la souris enfoncé
-bool running;                          // Dans la boucle principale
+  // pour .mark
+  M_NULL, // sommet non marqué
+  M_USED, // sommet marqué dans P
+  M_FRONT,// sommet marqué dans Q
+  M_PATH, // sommet dans le chemin
 
-// Délais d'affichage pour gridDraw()
-int delay; // unité = 10 ms
+  // divers
+  C_START,    // couleur de la position de départ
+  C_END,      // idem pour la destination
+  C_FINAL,    // couleur de fin du dégradé pour M_USED
+  C_END_WALL, // couleur de destination si sur V_WALL
 
-// Objets SDL
+};
+
+typedef struct{
+  // l'ordre de la déclaration est important
+  GLubyte R;
+  GLubyte G;
+  GLubyte B;
+} RGB;
+
+extern RGB color[]; // couleurs définies dans utils.c
+
+// faux ssi drawXXX() peut être sauté si l'affichage a eut lieu il y a
+// moins de 1/50s, ce qui accélère l'affichage. Mettre = true pour
+// forcer l'affichage
+bool update;
+
+int width, height;     // dimensions de la fenêtre graphique courante 
+bool mouse_left_down;  // bouton gauche de souris enfoncé ?
+bool mouse_right_down; // bouton droit de souris enfoncé ?
+double scale;          // zoom courrant = nombre de pixels par unité
+bool running;          // dans la boucle principale, presser 'q' pour false
+int delay;             // délais d'affichage pour drawGrid(), unité = 0"01
+
+// Objets SDL/GL
 SDL_Window *window;
 SDL_GLContext glcontext;
+GLvoid *gridImage;
+GLuint texName;
 
 #endif
