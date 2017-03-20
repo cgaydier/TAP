@@ -19,7 +19,7 @@ const float WHITE[] = {1.0f, 1.0f, 1.0f};
 const float RED[] = {1.0f, 0.0f, 0.0f};
 const float GREEN[] = {0.0f, 1.0f, 0.0f};
 const float BLUE[] = {0.0f, 0.0f, 1.0f};
-
+int lenPath;
 // Génère des points aléatoires dans le rectangle [0,max_X] × [0,max_Y]
 
 static point* generatePoints(int n, int max_X, int max_Y) {
@@ -321,8 +321,8 @@ static double tsp_twist(point *V,int n, int *P) {
 static void drawPath(point *V, int n, int *path, int len) {
     // Saute le dessin si le précédent a été fait il y a moins de 20ms
     static unsigned int last_tick = 0;
-    if (last_tick + 20 > SDL_GetTicks())
-        return;
+    //if (last_tick + 20 > SDL_GetTicks())
+    //    return;
     last_tick = SDL_GetTicks();
 
     // Gestion de la file d'event
@@ -352,8 +352,9 @@ int main(int argc, char *argv[]) {
     srand(0xc0ca);
     bool need_redraw = true;
     bool wait_event = true;
-
-    int n = 9;
+    
+    int n = 12;
+    lenPath = n;
     int X = 300, Y = 200;
     point *V = generatePoints(n, X, Y);
     int *P = malloc(n * sizeof (int));
@@ -407,7 +408,7 @@ int main(int argc, char *argv[]) {
 
         if (need_redraw) {
             draw(V, n, P, P2, P3);
-//            drawPath(V,n,P3,lenPath%n);
+            //drawPath(V,n,P3,lenPath%n);
         }
 
         need_redraw = handleEvent(wait_event);
