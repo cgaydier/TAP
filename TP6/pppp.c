@@ -13,6 +13,10 @@
 #include "variables.h"
 #include "utils.h"
 
+// taille initiale de la fenêtre
+int width = 640;
+int height = 480;
+
 static point* generatePoints(int n, int X, int Y) {
   vertices = malloc(n * sizeof(point));
   const double rx = (double) X / RAND_MAX;
@@ -56,8 +60,8 @@ point* pppp_rec(point* Px,int nX, point* Py, int nY) {
 		point *ret = malloc(sizeof(point)*2);
 		ret[0].x = 0;
 		ret[0].y = 0;
-		ret[1].x = 640;
-		ret[1].y = 480;
+		ret[1].x = width;
+		ret[1].y = height;
 		return ret;
 	}
 	if(nX == 2) {
@@ -201,9 +205,6 @@ void drawPPPP(point *P,int n,point *PP) {
 
 }
 
-// taille initiale de la fenêtre
-int width = 640;
-int height = 480;
 
 // pour la fenêtre graphique
 bool running = true;
