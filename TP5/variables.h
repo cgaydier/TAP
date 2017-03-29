@@ -46,6 +46,7 @@ enum{
   C_END,      // idem pour la destination
   C_FINAL,    // couleur de fin du dégradé pour M_USED
   C_END_WALL, // couleur de destination si sur V_WALL
+  M_USED2
 
 };
 
