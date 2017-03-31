@@ -145,23 +145,30 @@ point* pppp_rec(point* Px,int nX, point* Py, int nY) {
 	
 	double min_A = dist(pppp_A[0],pppp_A[1]);
 	double min_B = dist(pppp_B[0],pppp_B[1]);
-	
 	point *result = malloc(sizeof(point)*2);
 	if(min_S < min_A) {
 		if(min_S < min_B) {
 			result[0] = pppp_S[0];
 			result[1] = pppp_S[1];
+			free(pppp_A);
+			free(pppp_B);
 		} else {
 			result[0] = pppp_B[0];
 			result[1] = pppp_B[1];
+			free(pppp_A);
+			free(pppp_B);
 		}
 	} else {
 		if(min_A < min_B) {
 			result[0] = pppp_A[0];
 			result[1] = pppp_A[1];
+			free(pppp_A);
+			free(pppp_B);
 		} else {
 			result[0] = pppp_B[0];
 			result[1] = pppp_B[1];
+			free(pppp_A);
+			free(pppp_B);
 		}
 	}
 	
@@ -176,7 +183,10 @@ point* pppp(point* P,int n) {
 	}
 	qsort(Px,n,sizeof(point),compareX);
 	qsort(Py,n,sizeof(point),compareY);
-	return pppp_rec(Px,n,Py,n);
+	point *PP = pppp_rec(Px,n,Py,n);
+	free(Px);
+	free(Py);
+	return PP;
 }
 
 
@@ -230,5 +240,8 @@ int main(int argc,char **argv) {
         drawPPPP(V,n,PP);
         need_redraw = handleEvent(wait_event);
     }
+    free(V);
+    free(PP);
+    cleaning();
 	return EXIT_SUCCESS;
 }
