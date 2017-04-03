@@ -55,8 +55,8 @@ int compareY( const void* a, const void* b)
      else return 1;
 }
 
-point* pppp_rec(point* Px,int nX, point* Py, int nY) {
-	if(nX == 1) {
+point* pppp_rec(point* Px,point* Py, int n) {
+	if(n == 1) {
 		point *ret = malloc(sizeof(point)*2);
 		ret[0].x = 0;
 		ret[0].y = 0;
@@ -64,13 +64,13 @@ point* pppp_rec(point* Px,int nX, point* Py, int nY) {
 		ret[1].y = height;
 		return ret;
 	}
-	if(nX == 2) {
+	if(n == 2) {
 		point *ret = malloc(sizeof(point)*2);
 		ret[0] = Px[0];
 		ret[1] = Px[1];
 		return ret;
 	}
-	if(nX == 3) {
+	if(n == 3) {
 		double val;
 		point *ret = malloc(sizeof(point)*2);
 		double min = dist(Px[0],Px[1]);
@@ -86,19 +86,19 @@ point* pppp_rec(point* Px,int nX, point* Py, int nY) {
 		}
 		return ret;
 	}
-	point x_med = Px[nX/2];
-	point Ax[nX],Bx[nX];
-	point Ay[nY],By[nY];
+	point x_med = Px[n/2];
+	point Ax[n],Bx[n];
+	point Ay[n],By[n];
 	int size_A = 0;
 	int size_B = 0;
-	for(int i=0; i < nX; i++) {
+	for(int i=0; i < n; i++) {
 		if(Px[i].x <= x_med.x) {
 			Ax[size_A] = Px[i];
 			Ay[size_A] = Px[i];
 			size_A++;
 		}
 	}
-	for(int i=0; i < nX; i++) {
+	for(int i=0; i < n; i++) {
 		if(Px[i].x > x_med.x) {
 			Bx[size_B] = Px[i];
 			By[size_B] = Px[i];
@@ -111,8 +111,8 @@ point* pppp_rec(point* Px,int nX, point* Py, int nY) {
 	qsort(By,size_B,sizeof(point),compareY);
 	
 	
-	point *pppp_A = pppp_rec(Ax,size_A,Ay,size_A);
-	point *pppp_B = pppp_rec(Bx,size_B,By,size_B);
+	point *pppp_A = pppp_rec(Ax,Ay,size_A);
+	point *pppp_B = pppp_rec(Bx,By,size_B);
 	
 	double delta = dist(pppp_A[0],pppp_A[1]);
 	if(dist(pppp_B[0],pppp_B[1]) < delta) {
@@ -120,10 +120,10 @@ point* pppp_rec(point* Px,int nX, point* Py, int nY) {
 	}
 	
 	
-	point S[nX];
+	point S[n];
 	int size_S = 0;
 
-	for(int i = 0; i < nY;i++) {
+	for(int i = 0; i < n;i++) {
 		if(fabs(Py[i].x - x_med.x) < delta) {
 			S[size_S++] = Py[i];
 		}
@@ -183,7 +183,7 @@ point* pppp(point* P,int n) {
 	}
 	qsort(Px,n,sizeof(point),compareX);
 	qsort(Py,n,sizeof(point),compareY);
-	point *PP = pppp_rec(Px,n,Py,n);
+	point *PP = pppp_rec(Px,Py,n);
 	free(Px);
 	free(Py);
 	return PP;
